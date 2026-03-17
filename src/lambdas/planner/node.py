@@ -1,0 +1,121 @@
+"""
+Planner Node — builds the video plan via dynamic LLM logic or rigid fallback.
+Part of the Planner Lambda module.
+"""
+import os, re, json, html
+from .tools.reasoning import ALGO_PATTERNS
+from src.core.tools.llm_factory import call_llm
+from src.prompts.planner_prompt import PLANNER_SYSTEM_PROMPT, PLANNER_VIDEO_GENERATOR_PROMPT
+
+DATA_DIR = "data/problems"
+
+def _clean_html(html_str: str) -> str:
+    text = re.sub(r"<[^>]+>", " ", html_str or "")
+    text = html.unescape(text)
+    return re.sub(r"\s+", " ", text).strip()
+
+def _get_solutions(solutions_data: list, fallback_snippet: str) -> tuple:
+    """Extracts brute and optimal code from solutions data."""
+    brute, optimal = "", ""
+    for s in solutions_data:
+        code = s.get("code", "")
+        approach = s.get("approach", "").lower()
+        if "bruteforce" in approach or "naive" in approach:
+            brute = code
+        elif "optimal" in approach or "efficient" in approach:
+            optimal = code
+    
+    if not optimal and solutions_data:
+        optimal = solutions_data[0].get("code", "")
+    if not optimal:
+        optimal = fallback_snippet
+    
+    return brute, optimal
+
+def _determine_data_structure(tags: list) -> dict:
+    """Maps tags to a primary data structure for discussion."""
+    ds_map = {
+        "hash-table": {"name": "Hash Map", "reason": "to achieve O(1) lookup time"},
+        "stack": {"name": "Stack", "reason": "to maintain LIFO order for nested structures"},
+        "queue": {"name": "Queue", "reason": "for BFS-like level traversal"},
+        "two-pointers": {"name": "Two Pointers", "reason": "to optimize space by traversing in-place"},
+        "binary-search": {"name": "Binary Search", "reason": "to reduce time complexity to logarithmic"},
+        "dynamic-programming": {"name": "DP Table", "reason": "to cache subproblem results and avoid recomputation"},
+    }
+    for tag in tags:
+        if tag in ds_map:
+            return ds_map[tag]
+    return {"name": "Array", "reason": "as the primary data storage"}
+
+def planner_node(state: dict) -> dict:
+    """
+    Planner Node (Agnet #1) - Generates the video structural plan.
+    """
+    problem_title = state.get("problem_title", "Unknown")
+    problem_data = state.get("problem_data", {})
+    solutions_data = state.get("solutions_data", [])
+    
+    # ── Logic ────────────────────────────────────────────────────────────
+    print(f"[planner_node] Building chapters for '{problem_title}'...")
+    
+    # Extract problem statement
+    content = problem_data.get("content", "")
+    content_clean = _clean_html(content)
+    
+    # Identify snippet
+    snippet = ""
+    if solutions_data:
+        snippet = solutions_data[0].get("code", "")
+    
+    # Get Pattern (Reasoning)
+    from .tools.reasoning import analyze_pattern
+    reasoning = analyze_pattern(problem_title, content_clean, snippet)
+    pattern = reasoning.get("pattern", "generic")
+    
+    # Construct LLM Prompt
+    system_prompt = PLANNER_SYSTEM_PROMPT
+    user_prompt = PLANNER_VIDEO_GENERATOR_PROMPT.format(
+        title=problem_title,
+        difficulty=state.get("difficulty", "Medium"),
+        description=content_clean,
+        code=snippet,
+        pattern=pattern
+    )
+    
+    # Guardrail Check - Retry loop usually handled by graph, but here we call LLM
+    try:
+        response = call_llm(system_prompt, user_prompt)
+        # Attempt to parse JSON
+        plan = []
+        try:
+            # Simple extractor for markdown blocks
+            if "```json" in response:
+                json_str = response.split("```json")[-1].split("```")[0].strip()
+                plan = json.loads(json_str)
+            else:
+                plan = json.loads(response)
+        except:
+            print(f"  [planner_node] WARNING: LLM output was not pure JSON. Falling back to generic plan.")
+            plan = [
+                {"segment_id": 1, "chapter": "Introduction", "voiceover": f"Welcome! Today we're solving {problem_title}."},
+                {"segment_id": 2, "chapter": "Algorithm", "voiceover": f"The core idea is using {pattern}."},
+                {"segment_id": 3, "chapter": "Conclusion", "voiceover": "Thanks for watching!"}
+            ]
+            
+        # Save plan to cache
+        cache_dir = state.get("cache_dir")
+        if cache_dir:
+            plan_path = os.path.join(cache_dir, "plan.json")
+            with open(plan_path, "w", encoding="utf-8") as f:
+                json.dump(plan, f, indent=2)
+            print(f"  [planner_node] Saved plan to {plan_path}")
+
+        return {
+            "chapters": plan,
+            "pattern": pattern,
+            "reasoning": reasoning.get("reasoning", "")
+        }
+
+    except Exception as e:
+        print(f"  [planner_node] ERROR: {e}")
+        return {"error": f"Planner failed: {str(e)}"}

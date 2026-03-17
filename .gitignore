@@ -1,0 +1,26 @@
+# Environment variables
+.env
+
+# Large data files
+data/
+output/
+video_temp/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# IDEs
+.vscode/
+.idea/
+
+# Testing
+.pytest_cache/
+test_results/
+
+# Media build artifacts
+*.mp3
+*.mp4
+*.png
+!docs/*.png
