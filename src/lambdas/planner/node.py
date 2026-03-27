@@ -88,14 +88,22 @@ def planner_node(state: dict) -> dict:
         # Attempt to parse JSON
         plan = []
         try:
-            # Simple extractor for markdown blocks
-            if "```json" in response:
-                json_str = response.split("```json")[-1].split("```")[0].strip()
-                plan = json.loads(json_str)
-            else:
-                plan = json.loads(response)
-        except:
-            print(f"  [planner_node] WARNING: LLM output was not pure JSON. Falling back to generic plan.")
+            # Enhanced JSON extractor
+            clean_res = response.strip()
+            if "```json" in clean_res:
+                clean_res = clean_res.split("```json")[-1].split("```")[0].strip()
+            elif "```" in clean_res:
+                 clean_res = clean_res.split("```")[-1].split("```")[0].strip()
+            
+            # Remove potential leading/trailing non-JSON noise
+            start_idx = clean_res.find("[")
+            end_idx = clean_res.rfind("]")
+            if start_idx != -1 and end_idx != -1:
+                clean_res = clean_res[start_idx:end_idx+1]
+                
+            plan = json.loads(clean_res)
+        except Exception as e:
+            print(f"  [planner_node] WARNING: JSON parse failed ({e}). Falling back to generic plan.")
             plan = [
                 {"segment_id": 1, "chapter": "Introduction", "voiceover": f"Welcome! Today we're solving {problem_title}."},
                 {"segment_id": 2, "chapter": "Algorithm", "voiceover": f"The core idea is using {pattern}."},

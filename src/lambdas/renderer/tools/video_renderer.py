@@ -62,10 +62,14 @@ _KW_SET = set(keyword.kwlist)
 
 def _get_font(size: int, bold: bool = False) -> ImageFont.FreeTypeFont:
     candidates = [
+        "C:/Windows/Fonts/Inter-Bold.ttf",
+        "C:/Windows/Fonts/JetBrainsMono-Bold.ttf",
         "C:/Windows/Fonts/consola.ttf",   # Consolas
         "C:/Windows/Fonts/cour.ttf",      # Courier New
         "C:/Windows/Fonts/arial.ttf",     # Arial
     ] if bold else [
+        "C:/Windows/Fonts/Inter-Regular.ttf",
+        "C:/Windows/Fonts/JetBrainsMono-Regular.ttf",
         "C:/Windows/Fonts/consola.ttf",
         "C:/Windows/Fonts/lucon.ttf",     # Lucida Console
         "C:/Windows/Fonts/cour.ttf",
@@ -779,21 +783,28 @@ def _make_chapter_video(chapter: dict, video_dir: str = VIDEO_DIR) -> dict:
     
                 def make_frame(t):
                     try:
-                        if t < TITLE_CARD_SECS:
+                        CROSS_FADE_SECS = 0.5
+                        if t < TITLE_CARD_SECS - CROSS_FADE_SECS:
                             return _render_title_card_frame(chapter, t=t)
                         
+                        # Handle cross-fade between title card and content
                         content_t   = (t - TITLE_CARD_SECS)
                         content_dur = max(duration - TITLE_CARD_SECS, 1.0)
-                        progress    = min(content_t / content_dur, 1.0)
+                        progress    = min(max(content_t, 0.0) / content_dur, 1.0)
                         
-                        # Direct assignment to avoid UnboundLocalError
-                        rendered_frame = _render_chapter_frame(chapter, progress, duration=content_dur)
+                        rendered_content_frame = _render_chapter_frame(chapter, progress, duration=content_dur)
                         
+                        if t < TITLE_CARD_SECS:
+                            # Cross-fade region
+                            title_frame = _render_title_card_frame(chapter, t=t)
+                            fade_progress = (t - (TITLE_CARD_SECS - CROSS_FADE_SECS)) / CROSS_FADE_SECS
+                            return (title_frame * (1 - fade_progress) + rendered_content_frame * fade_progress).astype(np.uint8)
+
                         # Memory management: periodic GC
                         if int(t * FPS) % 30 == 0: 
                             gc.collect()
                         
-                        return _apply_ken_burns(rendered_frame, content_t, content_dur)
+                        return _apply_ken_burns(rendered_content_frame, content_t, content_dur)
                     except Exception as e:
                         # Fallback to avoid crashing the entire render pipe
                         return _render_title_card_frame(chapter, t=0)
@@ -813,6 +824,8 @@ def _make_chapter_video(chapter: dict, video_dir: str = VIDEO_DIR) -> dict:
                 codec="libx264",
                 audio_codec="aac",
                 temp_audiofile=temp_audio,
+                threads=4,
+                preset="fast",
                 verbose=False,
                 logger=None,
             )

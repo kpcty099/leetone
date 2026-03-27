@@ -170,21 +170,26 @@ def route_after_motion_choreographer(state: AgentState) -> str:
     return "typography"
 
 
-def route_after_typography(state: AgentState) -> str:
+def route_after_typography(state: AgentState) -> list:
     if _over_limit(state):
-        return "end"
-    # Branch by pipeline
+        return ["end"]
+    # Branch to both animator and tts in parallel
     chapters = state.get("chapters", [])
     is_discussion = any(c.get("is_discussion") for c in chapters)
-    return "animator"   # Both pipelines run animator next
+    
+    parallel_nodes = ["animator"]
+    if is_discussion:
+        parallel_nodes.append("multi_tts")
+    else:
+        parallel_nodes.append("tts")
+        
+    return parallel_nodes
 
 
 def route_after_animator(state: AgentState) -> str:
     if _over_limit(state) or _has_fatal_error(state):
         return "end"
-    chapters = state.get("chapters", [])
-    is_discussion = any(c.get("is_discussion") for c in chapters)
-    return "multi_tts" if is_discussion else "tts"
+    return "renderer" # In parallel branch, animator now goes to renderer join
 
 
 def route_after_tts(state: AgentState) -> str:
@@ -217,7 +222,7 @@ def route_after_multi_tts(state: AgentState) -> str:
         return "end"
     if not any(c.get("audio_path") for c in state.get("chapters", [])):
         return "end"
-    return "dialogue_renderer"
+    return "renderer" # Previously went to dialogue_renderer, now part of parallel branch
 
 
 def route_after_dialogue_renderer(state: AgentState) -> str:
@@ -387,13 +392,28 @@ def build_agent_graph():
     )
 
     # ── Shared edges (both pipelines converge here) ────────────────────────────
+    # ── Parallel Branching after Typography ────────────────────────────
     wf.add_conditional_edges(
-        "typography", route_after_typography,
-        {"animator": "animator", "end": END},
+        "typography", 
+        route_after_typography,
+        {
+            "animator": "animator", 
+            "tts": "tts",
+            "multi_tts": "multi_tts",
+            "end": END
+        }
     )
+
+    # Both parallel branches (Visuals and Audio) converge on Renderer
+    wf.add_edge("animator", "renderer")
+    wf.add_edge("tts", "renderer")
+    wf.add_edge("multi_tts", "renderer")
+
+    # Pipeline 1 specific edges (already handled by router/edges above)
+    # Pipeline 2 specific edges
     wf.add_conditional_edges(
-        "animator", route_after_animator,
-        {"tts": "tts", "multi_tts": "multi_tts", "end": END},
+        "dialogue_renderer", route_after_dialogue_renderer,
+        {"quality": "quality", "end": END},
     )
     wf.add_conditional_edges(
         "quality", route_after_quality,
