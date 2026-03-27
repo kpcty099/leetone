@@ -18,8 +18,6 @@ def call_llm(system_prompt: str, user_prompt: str) -> str:
 
     # MOCK MODE check
     if os.getenv("USE_MOCKS") == "true":
-        # Pass to HF tools which handles mocking for now
-        from src.core.tools.huggingface_tools import call_huggingface
         return call_huggingface(system_prompt, user_prompt)
 
     try:

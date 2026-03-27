@@ -16,7 +16,7 @@ PROVIDER_SETTINGS = {
     "huggingface": {
         "model": "meta-llama/Llama-3.1-8B-Instruct",
         "api_key_env": "HUGGINGFACE_API_KEY",
-        "max_tokens": 512,
+        "max_tokens": 8192,
     },
     "openai": {
         "model": "gpt-4o-mini",

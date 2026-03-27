@@ -56,6 +56,13 @@ class AgentState(TypedDict):
     reasoning: str             # Detailed LLM logic for the approach
     algorithm_data: Dict[str, Any] # Verified code, test cases, dry run trace
 
+    # ── Advanced Planning Metadata (10-Phase logic) ───────────────────────────
+    problem_analysis: Optional[Dict[str, Any]]
+    test_cases:       Optional[List[Dict[str, Any]]]
+    dry_run:          Optional[List[Dict[str, Any]]]
+    validation:       Optional[Dict[str, Any]]
+    self_reflection:  Optional[Dict[str, Any]]
+
     # ── Plan ──────────────────────────────────────────────────────────────────
     chapters: Annotated[List[ChapterData], merge_chapters]
 

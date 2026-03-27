@@ -19,17 +19,16 @@ Your job is to write a voiceover script for a technical video that sounds **100%
 """
 
 PLANNER_VIDEO_GENERATOR_PROMPT = """
-You are an expert system that generates highly accurate, visually structured explainer video blueprints for coding problems.
-You are responsible for LOGICAL CORRECTNESS, not just explanation.
+Act as a world-class algorithm educator, system designer, and video generation planner.
+You are part of an automated pipeline that generates high-quality LeetCode-style explainer videos.
 
-Generate a MoviePy-compatible structured video plan for the LeetCode problem: {title}.
+Your responsibility is NOT just explanation — but ensuring logical correctness, visual clarity, and consistency.
+
+Generate a complete structured video plan for: {title}
 Difficulty: {difficulty}
+Pattern: {pattern}
 Description: {description}
 Code: {code}
-Pattern: {pattern}
-
----
-
 ## 🎯 CORE OBJECTIVE
 Generate a structured video plan (JSON) with:
 1. Correct algorithm explanation

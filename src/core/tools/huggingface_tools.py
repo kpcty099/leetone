@@ -51,23 +51,51 @@ def call_huggingface(system_prompt: str, user_prompt: str, model="meta-llama/Lla
                  {"step": 2, "line": "if diff in prevMap:", "variables": {"i": 0, "n": 2, "prevMap": {}}, "comment": "7 not in map."},
                  {"step": 3, "line": "prevMap[n] = i", "variables": {"i": 0, "n": 2, "prevMap": {2: 0}}, "comment": "Stored 2 at index 0."}
              ])
-        if "JSON" in system_prompt or "skeleton" in user_prompt.lower():
+        if "world-class" in system_prompt.lower() or "world-class" in user_prompt.lower() or "10-phase" in system_prompt.lower() or "10-phase" in user_prompt.lower():
+             print("[LLM-Mock] Matched 10-Phase World Class Educator")
              return json.dumps({
-                 "title": "Mocked Two Sum",
-                 "hook": "Finding pairs",
-                 "difficulty": "Easy",
-                 "concepts": ["Arrays"],
-                 "scenes": [
-                     {"scene_id": 1, "chapter": "Intro", "duration_sec": 5, "voiceover": "Hello.", "on_screen_text": "2Sum", "flashcard_concept": "", "visual_plan": "", "code_snippet": "", "highlight_steps": []},
-                     {"scene_id": 2, "chapter": "Constraints", "duration_sec": 5, "voiceover": "Constraints", "on_screen_text": "", "flashcard_concept": "", "visual_plan": "", "code_snippet": "", "highlight_steps": []},
-                     {"scene_id": 3, "chapter": "Flashcards", "duration_sec": 5, "voiceover": "Flashcards", "on_screen_text": "", "flashcard_concept": "", "visual_plan": "", "code_snippet": "", "highlight_steps": []},
-                     {"scene_id": 4, "chapter": "Brute Force", "duration_sec": 5, "voiceover": "Brute", "on_screen_text": "", "flashcard_concept": "", "visual_plan": "", "code_snippet": "", "highlight_steps": []},
-                     {"scene_id": 5, "chapter": "Optimal", "duration_sec": 5, "voiceover": "Optimal", "on_screen_text": "", "flashcard_concept": "", "visual_plan": "", "code_snippet": "", "highlight_steps": []},
-                     {"scene_id": 6, "chapter": "Line-by-line", "duration_sec": 5, "voiceover": "Line", "on_screen_text": "", "flashcard_concept": "", "visual_plan": "", "code_snippet": "", "highlight_steps": []},
-                     {"scene_id": 7, "chapter": "Dry run", "duration_sec": 5, "voiceover": "Dry run", "on_screen_text": "", "flashcard_concept": "", "visual_plan": "", "code_snippet": "", "highlight_steps": []}
+                 "problem_analysis": {
+                     "category": "Array / Hash Map",
+                     "pattern": "hashmap_hashing",
+                     "key_constraints": ["nums.length >= 2", "Exactly one solution"],
+                     "edge_cases": ["Negative numbers", "Zeroes"]
+                 },
+                 "test_cases": [
+                     { "input": "[2, 7, 11, 15], target=9", "expected_output": "[0, 1]", "reason": "Basic case" }
                  ],
-                 "final_takeaway": "Done.",
-                 "cta": "Like and sub."
+                 "dry_run": [
+                     { "step": 1, "variables": {"i": 0, "n": 2, "map": {}}, "action": "checking 2", "state_snapshot": "map: {}", "output": None }
+                 ],
+                 "validation": { "is_correct": True, "issues_found": [], "fixes_applied": [] },
+                 "self_reflection": { "confusing_points": ["Complement lookup"], "visualization_needed": ["Hash map grid"], "key_insights": ["O(1) average lookup"] },
+                 "scenes": [
+                     {
+                         "scene_id": "intro",
+                         "type": "intro",
+                         "duration": 10,
+                         "voiceover": "Welcome! Today we solve Two Sum.",
+                         "subtitle": "Finding pairs that sum up to target.",
+                         "visual_elements": ["Title Card"],
+                         "animation_instructions": ["Fade in title"],
+                         "camera_motion": "none",
+                         "transition": "crossfade",
+                         "linked_dry_run_step": 1
+                     },
+                     {
+                         "scene_id": "algo",
+                         "type": "algo",
+                         "duration": 15,
+                         "voiceover": "We use a hash map to find the complement in O(1) time.",
+                         "subtitle": "Hash Map O(1) lookup",
+                         "visual_elements": ["Grid View"],
+                         "animation_instructions": ["Populate grid"],
+                         "camera_motion": "zoom",
+                         "transition": "none",
+                         "linked_dry_run_step": 2
+                     }
+                 ],
+                 "code": "def twoSum(nums, target):\n    prevMap = {}\n    for i, n in enumerate(nums):\n        diff = target - n\n        if diff in prevMap:\n            return [prevMap[diff], i]\n        prevMap[n] = i",
+                 "complexity": { "time": "O(N)", "space": "O(N)", "justification": "Single pass through array with O(1) hash map lookups." }
              })
         if "code" in user_prompt.lower() or "implementation" in user_prompt.lower() or "Coder" in system_prompt:
              if "PREVIOUS COMPILATION FAILED" in user_prompt:

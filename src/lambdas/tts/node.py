@@ -14,6 +14,6 @@ def tts_node(state: dict) -> dict:
     worker = TTSWorker(cache_dir)
     with ThreadPoolExecutor(max_workers=4) as executor:
         futures = [executor.submit(worker.run, {"chapter": c}) for c in chapters]
-        updated_chapters = [f.result() for f in futures]
+        updated_chapters = [f.result()["result"] for f in futures if f.result()["status"] == "success"]
         
     return {"chapters": updated_chapters}

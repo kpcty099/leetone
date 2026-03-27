@@ -411,10 +411,7 @@ def build_agent_graph():
 
     # Pipeline 1 specific edges (already handled by router/edges above)
     # Pipeline 2 specific edges
-    wf.add_conditional_edges(
-        "dialogue_renderer", route_after_dialogue_renderer,
-        {"quality": "quality", "end": END},
-    )
+    # (dialogue_renderer already handled at line 389)
     wf.add_conditional_edges(
         "quality", route_after_quality,
         {"thumbnail": "thumbnail"},
