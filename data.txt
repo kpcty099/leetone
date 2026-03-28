@@ -1,0 +1,181 @@
+=== PROBLEM: 1-bit-and-2-bit-characters ===
+
+ID:
+161
+
+FRONTEND_ID:
+717
+
+TITLE:
+1-bit and 2-bit Characters
+
+SLUG:
+1-bit-and-2-bit-characters
+
+DIFFICULTY:
+Easy
+
+CONTENT_HTML:
+<p>We have two special characters:</p>
+
+<ul>
+	<li>The first character can be represented by one bit <code>0</code>.</li>
+	<li>The second character can be represented by two bits (<code>10</code> or <code>11</code>).</li>
+</ul>
+
+<p>Given a binary array <code>bits</code> that ends with <code>0</code>, return <code>true</code> if the last character must be a one-bit character.</p>
+
+<p>&nbsp;</p>
+<p><strong class="example">Example 1:</strong></p>
+
+<pre>
+<strong>Input:</strong> bits = [1,0,0]
+<strong>Output:</strong> true
+<strong>Explanation:</strong> The only way to decode it is two-bit character and one-bit character.
+So the last character is one-bit character.
+</pre>
+
+<p><strong class="example">Example 2:</strong></p>
+
+<pre>
+<strong>Input:</strong> bits = [1,1,1,0]
+<strong>Output:</strong> false
+<strong>Explanation:</strong> The only way to decode it is two-bit character and two-bit character.
+So the last character is not one-bit character.
+</pre>
+
+<p>&nbsp;</p>
+<p><strong>Constraints:</...
+[TRUNCATED]
+
+EXAMPLE_TESTCASES:
+[1,0,0]
+[1,1,1,0]
+
+HINTS:
+["Keep track of where the next character starts.  At the end, you want to know if you started on the last bit."]
+
+TOPIC_TAGS:
+["Array"]
+
+========================================
+=== 10 SOLUTIONS EXTACTED ===
+
+--- C++ Solution #0 ---
+class Solution:
+    def isOneBitCharacter(self, bits):
+        """
+        :type bits: List[int]
+        :rtype: bool
+        """
+        i = 0
+        while i < len(bits):
+            if bits[i] == 1:
+                i += 1
+                if i == len(bits)-1:
+                    return False
+            i += 1
+        return True
+
+--- C++ Solution #1 ---
+public:
+    bool isOneBitCharacter(vector<int>& bits) {
+        for(int i=0;i<bits.size();)
+        {
+            if(bits[i]==1)
+            {
+                i+=2;
+                continue;
+            }
+            else if(bits[i]==0 && i!=bits.size()-1)
+            {
+                i++;
+                continue;
+            }
+            else 
+            {
+                return true;
+            }
+        }
+        return false;    
+    }
+};````
+
+--- C++ Solution #2 ---
+for(; i<n-1; i++){ // Proceed the loop from i=0 to n-2
+    if(bits[i]==1) i++; // the valid segment "10" or "11"
+}
+// if the last  valid segment is "10" or "11" i==n otherwise i==n-1
+return i==n-1;
+
+--- C++ Solution #3 ---
+Input: bits = [1,1,1,0]
+Output: false
+Explanation: The only way to decode it is two-bit character and two-bit character.
+So the last character is not one-bit character.
+
+--- C++ Solution #4 ---
+class Solution {
+    public boolean isOneBitCharacter(int[] bits) {
+        int n = bits.length;
+        for (int i = 0; i < n; i++) {
+            if (bits[i] == 0)
+                continue;
+            i++;
+            if (i == n - 1)
+                return false;
+        }
+        return true;
+    }
+}
+
+--- Python Solution #0 ---
+class Solution:
+    def isOneBitCharacter(self, bits):
+        """
+        :type bits: List[int]
+        :rtype: bool
+        """
+        i = 0
+        while i < len(bits):
+            if bits[i] == 1:
+                i += 1
+                if i == len(bits)-1:
+                    return False
+            i += 1
+        return True
+
+--- Python Solution #1 ---
+Input: bits = [1,1,1,0]
+Output: false
+Explanation: The only way to decode it is two-bit character and two-bit character.
+So the last character is not one-bit character.
+
+--- Python Solution #2 ---
+for(; i<n-1; i++){ // Proceed the loop from i=0 to n-2
+    if(bits[i]==1) i++; // the valid segment "10" or "11"
+}
+// if the last  valid segment is "10" or "11" i==n otherwise i==n-1
+return i==n-1;
+
+--- Python Solution #3 ---
+Input: bits = [1,1,1,0]
+Output: false
+Explanation: The only way to decode it is two-bit character and two-bit character.
+So the last character is not one-bit character.
+
+--- Python Solution #4 ---
+class Solution {
+    public boolean isOneBitCharacter(int[] bits) {
+        int n = bits.length;
+        for (int i = 0; i < n; i++) {
+            if (bits[i] == 0)
+                continue;
+            i++;
+            if (i == n - 1)
+                return false;
+        }
+        return true;
+    }
+}
+
